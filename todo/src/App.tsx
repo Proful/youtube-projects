@@ -5,8 +5,7 @@ import TodoList from "./TodoList"
 
 function App() {
   return (
-    <div className="App">
-      <h1 className="text-red-400">Hi from Kenny & Proful</h1>
+    <div className="flex justify-center mt-20">
       <TodoList />
     </div>
   )
