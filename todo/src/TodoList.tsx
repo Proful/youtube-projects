@@ -17,11 +17,11 @@ function TodoList() {
     window.localStorage.setItem("todos", JSON.stringify(todos))
   }, [todos])
 
-  const handleCreateTodo = (todo: string) => {
+  const handleCreateTodo = (todoText: string) => {
     const oldTodos = [...todos]
     oldTodos.push({
       id: Math.floor(Math.random() * 10000000),
-      text: todo,
+      text: todoText,
       isCompleted: false,
     })
     setTodos(oldTodos)
