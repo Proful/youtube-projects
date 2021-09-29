@@ -1,12 +1,8 @@
-import React, { useEffect, useState } from "react"
-import { HNHeader } from "./HNHeader"
+import React from "react"
 import { HNBody } from "./HNBody"
+import { HNHeader } from "./HNHeader"
 
 export function HNHomePage() {
-  return (
-    <div>
-      <HNHeader />
-      <HNBody />
-    </div>
-  )
+
+    return <div><HNHeader /><HNBody /></div>
 }

@@ -7,7 +7,7 @@ type NewsItemProps = {
   index: number
 }
 
-export function NewsItem({ index, id, title, url }: NewsItemProps) {
+export function NewsItem({ id, title, url, index }: NewsItemProps) {
   return (
     <div className="mb-12">
       <div>
@@ -20,12 +20,11 @@ export function NewsItem({ index, id, title, url }: NewsItemProps) {
           {index}. {title}
         </a>
       </div>
-      <div className={`${index < 10 ? "ml-8" : "ml-11"} text-xl text-gray-500`}>
+      <div className="ml-8 text-xl text-gray-500">
         <span>({new URL(url).hostname})</span>
         <span> | </span>
         <span>
           <a
-            className="cursor-pointer hover:underline"
             href={`https://news.ycombinator.com/item?id=${id}`}
             target="_blank"
             rel="noreferrer"

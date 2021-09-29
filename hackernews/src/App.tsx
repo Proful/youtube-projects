@@ -1,9 +1,9 @@
 import React from "react"
-import { HNHomePage } from "./HNHomePage"
+import {HNHomePage} from "./HNHomePage"
 
 function App() {
   return (
-    <div>
+    <div className="App">
       <HNHomePage />
     </div>
   )
