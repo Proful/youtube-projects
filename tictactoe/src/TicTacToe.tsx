@@ -22,10 +22,13 @@ type WinningInfo = {
 }
 
 const getCellCenter = (index: number): Point => {
-  const x = index % 3
-  const y = Math.floor(index / 3)
-  const cx = (MAX_WIDTH / 6) * (x * 2 + 1)
-  const cy = (MAX_WIDTH / 6) * (y * 2 + 1)
+  const x = Math.floor(index / 3)
+  const y = index % 3
+
+  // for getting the distance in horizontal(x) direction, we use y value
+  // for getting the distance in vertical(y) direction, we use x value
+  const cx = (MAX_WIDTH / 6) * (y * 2 + 1)
+  const cy = (MAX_WIDTH / 6) * (x * 2 + 1)
 
   return [cx, cy]
 }
@@ -40,6 +43,12 @@ export function TicTacToe() {
   const [boardState, setBoardState] = useState(
     Array(9).fill(Player.Draw) as number[]
   )
+
+  const resetBoard = () => {
+    setIsXTurn(true)
+    setWinningInfo(null)
+    setBoardState(Array(9).fill(Player.Draw))
+  }
 
   const checkWinner = (
     winnablePositions: Array<WinnablePosition>,
@@ -91,16 +100,16 @@ export function TicTacToe() {
   const drawWinningLine = () => {
     if (winningInfo && !winningInfo.line && winningInfo.winner != -99) {
       // starting point
-      const [cx1, cy1] = getCellCenter(winningInfo.position![0])
+      const [x1, y1] = getCellCenter(winningInfo.position![0])
 
       // ending point
-      const [cx2, cy2] = getCellCenter(winningInfo.position![2])
+      const [x2, y2] = getCellCenter(winningInfo.position![2])
 
       setWinningInfo({
         ...winningInfo,
         line: {
-          from: [cx1, cy1],
-          to: [cx2, cy2],
+          from: [x1, y1],
+          to: [x2, y2],
         },
       })
     }
@@ -114,8 +123,11 @@ export function TicTacToe() {
     // clientX & clientY (0 to 400)
     // each cell is a square of width & height of 400/3 ~ 133
     // xGrid & yGrid => 0, 1, 2
-    const xGrid = Math.floor(clientX / (MAX_WIDTH / 3))
-    const yGrid = Math.floor(clientY / (MAX_HEIGHT / 3))
+    // here to find the xGrid position we use the y
+    // coordinate and vice versa
+    const xGrid = Math.floor(clientY / (MAX_HEIGHT / 3))
+    const yGrid = Math.floor(clientX / (MAX_WIDTH / 3))
+
 
     // if the game is over, or the cell was already played, don't allow input
     const isPlayedCell = boardState[xGrid * 3 + yGrid] !== Player.Draw
@@ -149,13 +161,13 @@ export function TicTacToe() {
 
           return (
             <g key={index}>
-              {point === Player.X && <Circle key={index} midpoint={[cx, cy]} />}
-              {point === Player.O && <Cross key={index} midpoint={[cx, cy]} />}
-              {
+              {point === Player.O && <Circle key={index} midpoint={[cx, cy]} />}
+              {point === Player.X && <Cross key={index} midpoint={[cx, cy]} />}
+              {/* {
                 <text x={cx} y={cy + 50}>
                   {index}
                 </text>
-              }
+              } */}
             </g>
           )
         })}
@@ -168,10 +180,11 @@ export function TicTacToe() {
         (winningInfo.winner === Player.Draw ? (
           <h3 className="text-2xl">It is a draw</h3>
         ) : (
-          <h3 className="text-2xl">{`${
-            winningInfo.winner === Player.X ? "X" : "O"
-          } is the winner`}</h3>
+          <h3 className="text-2xl">{`${winningInfo.winner === Player.X ? "X" : "O"
+            } is the winner`}</h3>
         ))}
+
+      <input type="button" value="Play again" onClick={resetBoard} />
     </>
   )
 }
@@ -194,8 +207,8 @@ function Grid() {
 }
 
 type LineProps = {
-  from: number[]
-  to: number[]
+  from: Point
+  to: Point
 }
 function Line({ from, to }: LineProps) {
   return (
@@ -211,7 +224,7 @@ function Line({ from, to }: LineProps) {
   )
 }
 type CircleProps = {
-  midpoint: number[]
+  midpoint: Point
 }
 
 function Circle({ midpoint }: CircleProps) {
@@ -222,7 +235,7 @@ function Circle({ midpoint }: CircleProps) {
 }
 
 type CrossProps = {
-  midpoint: number[]
+  midpoint: Point
 }
 
 function Cross({ midpoint }: CrossProps) {
