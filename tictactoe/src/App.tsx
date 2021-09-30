@@ -3,7 +3,7 @@ import { TicTacToe } from "./TicTacToe"
 
 function App() {
   return (
-    <div>
+    <div className="bg-gray-800 h-screen ">
       <TicTacToe />
     </div>
   )

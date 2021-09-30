@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 
 const MAX_WIDTH = 400
 const MAX_HEIGHT = 400
@@ -27,7 +27,7 @@ const getCellCenter = (index: number): Point => {
 
   // for getting the distance in horizontal(x) direction, we use y value
   // for getting the distance in vertical(y) direction, we use x value
-  const cx = (MAX_WIDTH / 6) * (y * 2 + 1)
+  const cx = (MAX_HEIGHT / 6) * (y * 2 + 1)
   const cy = (MAX_WIDTH / 6) * (x * 2 + 1)
 
   return [cx, cy]
@@ -39,10 +39,21 @@ export function TicTacToe() {
   // false => PLAYER1 ('O')
   const [isXTurn, setIsXTurn] = useState(true)
   const [winningInfo, setWinningInfo] = useState<WinningInfo | null>(null)
+  const [svgOffset, setSvgOffset] = useState<Point>([0, 0])
+  const svgRef = useRef(null)
 
   const [boardState, setBoardState] = useState(
     Array(9).fill(Player.Draw) as number[]
   )
+
+  useEffect(() => {
+    if (svgRef.current) {
+      const svgElement: SVGElement = svgRef.current
+      const { x, y } = svgElement.getBoundingClientRect()
+
+      setSvgOffset([x, y])
+    }
+  }, [])
 
   const resetBoard = () => {
     setIsXTurn(true)
@@ -125,9 +136,10 @@ export function TicTacToe() {
     // xGrid & yGrid => 0, 1, 2
     // here to find the xGrid position we use the y
     // coordinate and vice versa
-    const xGrid = Math.floor(clientY / (MAX_HEIGHT / 3))
-    const yGrid = Math.floor(clientX / (MAX_WIDTH / 3))
+    const xGrid = Math.floor((clientY - svgOffset[1]) / (MAX_HEIGHT / 3))
+    const yGrid = Math.floor((clientX - svgOffset[0]) / (MAX_WIDTH / 3))
 
+    // console.log("action ", xGrid, yGrid)
 
     // if the game is over, or the cell was already played, don't allow input
     const isPlayedCell = boardState[xGrid * 3 + yGrid] !== Player.Draw
@@ -149,42 +161,64 @@ export function TicTacToe() {
 
   return (
     <>
-      <svg
-        width={MAX_WIDTH}
-        height={MAX_HEIGHT}
-        viewBox={`0 0 ${MAX_WIDTH} ${MAX_HEIGHT}`}
-        onClick={handlePlayerAction}
-      >
-        <Grid />
-        {boardState.map((point, index) => {
-          const [cx, cy] = getCellCenter(index)
+      <div className="flex justify-center items-center pt-40">
+        <svg
+          width={MAX_WIDTH}
+          height={MAX_HEIGHT}
+          viewBox={`0 0 ${MAX_WIDTH} ${MAX_HEIGHT}`}
+          onClick={handlePlayerAction}
+          ref={svgRef}
+        >
+          <Grid />
+          {boardState.map((point, index) => {
+            const [cx, cy] = getCellCenter(index)
 
-          return (
-            <g key={index}>
-              {point === Player.O && <Circle key={index} midpoint={[cx, cy]} />}
-              {point === Player.X && <Cross key={index} midpoint={[cx, cy]} />}
-              {/* {
-                <text x={cx} y={cy + 50}>
-                  {index}
-                </text>
-              } */}
-            </g>
-          )
-        })}
-        {winningInfo && winningInfo.line && (
-          <Line from={winningInfo.line.from} to={winningInfo.line.to} />
-        )}
-      </svg>
-      {winningInfo &&
-        winningInfo.winner != null &&
-        (winningInfo.winner === Player.Draw ? (
-          <h3 className="text-2xl">It is a draw</h3>
-        ) : (
-          <h3 className="text-2xl">{`${winningInfo.winner === Player.X ? "X" : "O"
-            } is the winner`}</h3>
-        ))}
-
-      <input type="button" value="Play again" onClick={resetBoard} />
+            return (
+              <g key={index}>
+                {point === Player.O && (
+                  <Circle key={index} midpoint={[cx, cy]} />
+                )}
+                {point === Player.X && (
+                  <Cross key={index} midpoint={[cx, cy]} />
+                )}
+                {/* {
+                  <text x={cx} y={cy + 50}>
+                    {index}
+                  </text>
+                } */}
+              </g>
+            )
+          })}
+          {winningInfo && winningInfo.line && (
+            <Line
+              color="text-red-400"
+              from={winningInfo.line.from}
+              to={winningInfo.line.to}
+            />
+          )}
+        </svg>
+      </div>
+      <div className="flex flex-col justify-center items-center text-gray-100">
+        <div>
+          <input
+            className="mt-6 p-2 bg-transparent cursor-pointer border-solid border border-gray-600 rounded"
+            type="button"
+            value="Play again"
+            onClick={resetBoard}
+          />
+        </div>
+        <div className="mt-4">
+          {winningInfo &&
+            winningInfo.winner != null &&
+            (winningInfo.winner === Player.Draw ? (
+              <h3 className="text-3xl">It is a draw</h3>
+            ) : (
+              <h3 className="text-3xl">{`${
+                winningInfo.winner === Player.X ? "X" : "O"
+              } wins`}</h3>
+            ))}
+        </div>
+      </div>
     </>
   )
 }
@@ -209,20 +243,22 @@ function Grid() {
 type LineProps = {
   from: Point
   to: Point
+  color?: string
 }
-function Line({ from, to }: LineProps) {
+
+function Line({ from, to, color }: LineProps) {
   return (
     <line
       x1={from[0]}
       y1={from[1]}
       x2={to[0]}
       y2={to[1]}
-      fill="red"
-      stroke="red"
+      className={`${color || "text-gray-500"} stroke-current`}
       strokeWidth={5}
     ></line>
   )
 }
+
 type CircleProps = {
   midpoint: Point
 }
@@ -230,7 +266,14 @@ type CircleProps = {
 function Circle({ midpoint }: CircleProps) {
   const [x, y] = midpoint
   return (
-    <circle cx={x} cy={y} r="30" stroke="black" strokeWidth="5" fill="white" />
+    <circle
+      className="text-green-400 stroke-current fill-transparent"
+      fill="transparent"
+      cx={x}
+      cy={y}
+      r="30"
+      strokeWidth="5"
+    />
   )
 }
 
@@ -240,15 +283,23 @@ type CrossProps = {
 
 function Cross({ midpoint }: CrossProps) {
   const [x, y] = midpoint
-  const length = 60
+  const length = 70
   const sin45 = 1 / Math.sqrt(2)
 
   const offset = (length / 2) * sin45
 
   return (
     <g>
-      <Line from={[x - offset, y - offset]} to={[x + offset, y + offset]} />
-      <Line from={[x - offset, y + offset]} to={[x + offset, y - offset]} />
+      <Line
+        color="text-blue-400"
+        from={[x - offset, y - offset]}
+        to={[x + offset, y + offset]}
+      />
+      <Line
+        color="text-blue-400"
+        from={[x - offset, y + offset]}
+        to={[x + offset, y - offset]}
+      />
     </g>
   )
 }
