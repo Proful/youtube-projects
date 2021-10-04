@@ -42,6 +42,8 @@ function TimesTable() {
     const optionsMod: number[] = []
     // Get a random index to store the actual result
     const i = rnd(0, 4)
+    // console.log(`i = ${i}`)
+
     optionsMod[i] = multiplier * multiplicand
     ;[0, 1, 2, 3, 4].forEach((j) => {
       if (j !== i) {
@@ -55,16 +57,20 @@ function TimesTable() {
   }, [])
 
   const onSelect = (selected: number) => {
-    if (selected === mul.multiplier * mul.multiplicand) {
-      setIsCorrect(true)
-      timesStorage.correct = timesStorage.correct + 1
+    if (isCorrect !== null) {
+      init()
     } else {
-      setIsCorrect(false)
-      timesStorage.wrong = timesStorage.wrong + 1
+      if (selected === mul.multiplier * mul.multiplicand) {
+        setIsCorrect(true)
+        timesStorage.correct = timesStorage.correct + 1
+      } else {
+        setIsCorrect(false)
+        timesStorage.wrong = timesStorage.wrong + 1
+      }
+      const timesStorageStr = JSON.stringify(timesStorage)
+      window.localStorage.setItem("timestable", timesStorageStr)
+      setTimesStorage(timesStorage)
     }
-    const timesStorageStr = JSON.stringify(timesStorage)
-    window.localStorage.setItem("timestable", timesStorageStr)
-    setTimesStorage(timesStorage)
   }
   return (
     <div className="m-20 text-xl">
@@ -102,10 +108,10 @@ type TimesOptions = {
 function TimesOptions({ options, onSelect }: TimesOptions) {
   return (
     <div className="mt-5">
-      {options.map((opt) => (
+      {options.map((opt, i) => (
         <button
           className="block border mb-2 w-20 h-10"
-          key={opt}
+          key={i}
           onClick={() => onSelect(opt)}
         >
           {opt}
